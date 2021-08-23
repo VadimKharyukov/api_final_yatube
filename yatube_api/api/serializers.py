@@ -54,5 +54,6 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def validate_following(self, value):
         if self.context['request'].user == value:
-            raise serializers.ValidationError('Повторная подписка не возможна!')
+            raise serializers.ValidationError(
+                'Повторная подписка не возможна!')
         return value
