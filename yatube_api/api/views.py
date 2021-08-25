@@ -1,22 +1,13 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, filters
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly,
-    SAFE_METHODS,
-    IsAuthenticated
-)
+from rest_framework import filters, viewsets
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 
-from posts.models import Group, Post, Follow
+from posts.models import Follow, Group, Post
 
-from .serializers import GroupSerializer, PostSerializer, CommentSerializer, \
-    FollowSerializer
-
-
-class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
-    def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return obj.author == request.user
+from .permissions import IsAuthorOrReadOnly
+from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
+                          PostSerializer)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,7 +37,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         post = get_object_or_404(Post,
                                  pk=self.kwargs.get('post_id'))
-        return post.comments
+        return post.comments.all()
 
 
 class FollowViewSet(viewsets.ModelViewSet):
@@ -56,7 +47,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     search_fields = ('following__username', 'user__username')
 
     def get_queryset(self):
-        return Follow.objects.filter(user=self.request.user)
+        return self.request.user.follower
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

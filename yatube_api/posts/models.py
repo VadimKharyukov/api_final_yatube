@@ -41,8 +41,14 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(User,
-                             related_name='user',
+                             related_name='follower',
                              on_delete=models.CASCADE)
     following = models.ForeignKey(User,
                                   related_name='following',
                                   on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('user', 'following'),
+                                    name='unique_list')
+        ]
